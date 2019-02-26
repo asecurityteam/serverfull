@@ -1,41 +1,49 @@
-.PHONY : dep lint test integration coverage doc build run deploy
-DIR := $(shell pwd)
-IMAGE := $(shell basename $(DIR))
-VERSION := $(shell git rev-parse --short HEAD)
-ifeq ($(shell git diff --cached --quiet; echo $$?),1)
-    VERSION := $(VERSION)$(shell id -un)
+TAG := $(shell git rev-parse --short HEAD)
+DIR := $(shell pwd -L)
+GOPATH := ${GOPATH}
+ifeq ($(GOPATH),)
+	GOPATH := ${HOME}/go
 endif
-ENVIRON := dev
+PROJECT_PATH := $(subst $(GOPATH)/src/,,$(DIR))
 
 dep:
-	dep ensure
+	docker run -ti \
+        --mount src="$(DIR)",target="/go/src/$(PROJECT_PATH)",type="bind" \
+        -w "/go/src/$(PROJECT_PATH)" \
+        asecurityteam/sdcli:v1 go dep
 
 lint:
-	golangci-lint run --config .golangci.yaml ./...
+	docker run -ti \
+        --mount src="$(DIR)",target="/go/src/$(PROJECT_PATH)",type="bind" \
+        -w "/go/src/$(PROJECT_PATH)" \
+        asecurityteam/sdcli:v1 go lint
 
 test:
-	mkdir -p .coverage
-	go test -v -cover -coverpkg=./... -coverprofile=.coverage/unit.cover.out ./...
-	gocov convert .coverage/unit.cover.out | gocov-xml > .coverage/unit.xml
+	docker run -ti \
+        --mount src="$(DIR)",target="/go/src/$(PROJECT_PATH)",type="bind" \
+        -w "/go/src/$(PROJECT_PATH)" \
+        asecurityteam/sdcli:v1 go test
 
 integration:
-	mkdir -p .coverage
-	go test -v -cover -coverpkg=./... -coverprofile=.coverage/integration.cover.out ./tests/
-	gocov convert .coverage/integration.cover.out | gocov-xml > .coverage/integration.xml
+	docker run -ti \
+        --mount src="$(DIR)",target="/go/src/$(PROJECT_PATH)",type="bind" \
+        -w "/go/src/$(PROJECT_PATH)" \
+        asecurityteam/sdcli:v1 go integration
 
 coverage:
-	mkdir -p .coverage
-	gocovmerge .coverage/*.cover.out > .coverage/combined.cover.out
-	gocov convert .coverage/combined.cover.out | gocov-xml > .coverage/combined.xml
+	docker run -ti \
+        --mount src="$(DIR)",target="/go/src/$(PROJECT_PATH)",type="bind" \
+        -w "/go/src/$(PROJECT_PATH)" \
+        asecurityteam/sdcli:v1 go coverage
 
-doc:
-	godoc -http ':9090'
+doc: ;
 
-build:
-	docker build -t atlassian/$(IMAGE):$(VERSION) .
+build-dev: ;
 
-run:
-	docker run -ti atlassian/$(IMAGE):$(VERSION)
+build: ;
 
-deploy:
-	docker push atlassian/$(IMAGE):$(VERSION)
+run: ;
+
+deploy-dev: ;
+
+deploy: ;

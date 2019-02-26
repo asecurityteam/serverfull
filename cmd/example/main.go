@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -37,12 +38,16 @@ type helloYouOutput struct {
 //		curl --request POST --data '{"name": "me"}' localhost:8080/2015-03-31/functions/helloYou/invocations
 //
 // The input data may be omitted or invalid in order to generate an error.
-func helloYou(ctx context.Context, input helloYouInput) (helloYouOutput, error) {
+func helloYou(_ context.Context, input helloYouInput) (helloYouOutput, error) {
 	name := input.Name
+	var err error
 	if name == "" {
 		name = "ƛ"
 	}
-	return helloYouOutput{Greeting: fmt.Sprintf("Hello %s!", name)}, nil
+	if name == "error" {
+		err = errors.New("something went wrong")
+	}
+	return helloYouOutput{Greeting: fmt.Sprintf("Hello %s!", name)}, err
 }
 
 func main() {
