@@ -24,6 +24,14 @@ var (
 	nullLogger = logevent.New(logevent.Config{Output: ioutil.Discard})
 	nullLogFn  = func(context.Context) domain.Logger { return nullLogger }
 	nullStatFn = xstats.FromContext
+	testName   = "test"
+)
+
+type testCtxKey string
+
+var (
+	ctxKey  testCtxKey = "key"
+	ctxKey2 testCtxKey = "key2"
 )
 
 type URLParam string
@@ -34,21 +42,21 @@ func (p URLParam) Get(context.Context, string) string {
 
 func TestBackgroundContext(t *testing.T) {
 	original, cancelOriginal := context.WithCancel(context.Background())
-	original = context.WithValue(original, "key", "value")
+	original = context.WithValue(original, ctxKey, "value")
 	defer cancelOriginal()
 
 	var bg context.Context = &bgContext{
 		Context: context.Background(),
 		Values:  original,
 	}
-	bg = context.WithValue(bg, "key2", "value2")
+	bg = context.WithValue(bg, ctxKey2, "value2")
 	bg, cancelBg := context.WithCancel(bg)
 	defer cancelBg()
 
-	v := bg.Value("key")
+	v := bg.Value(ctxKey)
 	assert.IsType(t, "", v, "bgContext did not preserve values")
 	assert.Equal(t, v, "value")
-	v = bg.Value("key2")
+	v = bg.Value(ctxKey2)
 	assert.IsType(t, "", v, "bgContext did not expose new values")
 	assert.Equal(t, v, "value2")
 
@@ -83,7 +91,7 @@ func Test_statusFromError(t *testing.T) {
 		},
 		{
 			name: "*json.InvalidUTF8Error",
-			args: args{err: &json.InvalidUTF8Error{}},
+			args: args{err: &json.InvalidUTF8Error{}}, // nolint
 			want: http.StatusBadRequest,
 		},
 		{
@@ -93,7 +101,7 @@ func Test_statusFromError(t *testing.T) {
 		},
 		{
 			name: "*json.UnmarshalFieldError",
-			args: args{err: &json.UnmarshalFieldError{}},
+			args: args{err: &json.UnmarshalFieldError{}}, // nolint
 			want: http.StatusBadRequest,
 		},
 		{
@@ -103,7 +111,7 @@ func Test_statusFromError(t *testing.T) {
 		},
 		{
 			name: "unknown",
-			args: args{err: errors.New("test")},
+			args: args{err: errors.New(testName)},
 			want: http.StatusInternalServerError,
 		},
 	}
@@ -127,18 +135,18 @@ func Test_responseFromError(t *testing.T) {
 	}{
 		{
 			name: "non-pointer",
-			args: args{err: domain.NotFoundError{ID: "test"}},
+			args: args{err: domain.NotFoundError{ID: testName}},
 			want: lambdaError{
-				Message:    domain.NotFoundError{ID: "test"}.Error(),
+				Message:    domain.NotFoundError{ID: testName}.Error(),
 				Type:       "NotFoundError",
 				StackTrace: errResponseStackTrace,
 			},
 		},
 		{
 			name: "pointer",
-			args: args{err: &domain.NotFoundError{ID: "test"}},
+			args: args{err: &domain.NotFoundError{ID: testName}},
 			want: lambdaError{
-				Message:    domain.NotFoundError{ID: "test"}.Error(),
+				Message:    domain.NotFoundError{ID: testName}.Error(),
 				Type:       "NotFoundError",
 				StackTrace: errResponseStackTrace,
 			},
@@ -157,7 +165,7 @@ func TestInvokeFunctionNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
@@ -179,7 +187,7 @@ func TestInvokeFunctionFetchFailure(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
@@ -201,7 +209,7 @@ func TestInvokeFunctionInvalidInvocationType(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	fn := NewMockHandler(ctrl)
 	handler := &Invoke{
@@ -225,7 +233,7 @@ func TestInvokeFunctionDryRun(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	fn := NewMockHandler(ctrl)
 	handler := &Invoke{
@@ -250,7 +258,7 @@ func TestInvokeFunctionEvent(t *testing.T) {
 	defer ctrl.Finish()
 
 	done := make(chan interface{})
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	fn := NewMockHandler(ctrl)
 	handler := &Invoke{
@@ -284,7 +292,7 @@ func TestInvokeFunctionRequestResponseBadInput(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	fn := NewMockHandler(ctrl)
 	handler := &Invoke{
@@ -309,7 +317,7 @@ func TestInvokeFunctionRequestResponseFunctionError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	fn := NewMockHandler(ctrl)
 	handler := &Invoke{
@@ -334,7 +342,7 @@ func TestInvokeFunctionRequestResponseSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	fnName := "test"
+	fnName := testName
 	fetcher := NewMockHandlerFetcher(ctrl)
 	fn := NewMockHandler(ctrl)
 	handler := &Invoke{

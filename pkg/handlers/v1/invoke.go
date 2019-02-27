@@ -155,11 +155,11 @@ func statusFromError(err error) int {
 	switch err.(type) {
 	case nil:
 		return http.StatusOK
-	case *json.InvalidUTF8Error:
+	case *json.InvalidUTF8Error: // nolint
 		return http.StatusBadRequest
 	case *json.InvalidUnmarshalError:
 		return http.StatusBadRequest
-	case *json.UnmarshalFieldError:
+	case *json.UnmarshalFieldError: // nolint
 		return http.StatusBadRequest
 	case *json.UnmarshalTypeError:
 		return http.StatusBadRequest
