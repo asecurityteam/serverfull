@@ -22,7 +22,7 @@ func NewStatic(ctx context.Context, s settings.Source, handlers map[string]domai
 	rt := new(runhttp.Runtime)
 	err := settings.NewComponent(
 		ctx,
-		&settings.PrefixSource{Source: s, Prefix: []string{"SERVERFULL"}},
+		&settings.PrefixSource{Source: s, Prefix: []string{"serverfull"}},
 		rtC,
 		rt,
 	)
