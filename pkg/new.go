@@ -2,7 +2,6 @@ package serverfull
 
 import (
 	"context"
-	"os"
 
 	"github.com/asecurityteam/runhttp"
 	"github.com/asecurityteam/serverfull/pkg/domain"
@@ -11,7 +10,7 @@ import (
 )
 
 // NewStatic generates a runtime bound to the given handler mapping.
-func NewStatic(handlers map[string]domain.Handler) (*runhttp.Runtime, error) {
+func NewStatic(ctx context.Context, s settings.Source, handlers map[string]domain.Handler) (*runhttp.Runtime, error) {
 	fetcher := &handlerfetcher.Static{
 		Handlers: handlers,
 	}
@@ -19,12 +18,11 @@ func NewStatic(handlers map[string]domain.Handler) (*runhttp.Runtime, error) {
 		HandlerFetcher: fetcher,
 	}
 	router := NewRouter(conf)
-	source, _ := settings.NewEnvSource(os.Environ())
 	rtC := &runhttp.Component{Handler: router}
 	rt := new(runhttp.Runtime)
 	err := settings.NewComponent(
-		context.Background(),
-		&settings.PrefixSource{Source: source, Prefix: []string{"SERVERFULL"}},
+		ctx,
+		&settings.PrefixSource{Source: s, Prefix: []string{"SERVERFULL"}},
 		rtC,
 		rt,
 	)
