@@ -1,6 +1,6 @@
 FROM golang:latest AS BUILDER
 COPY . .
-RUN GOCACHE=off CGO_ENABLED=0 GOOS=linux go build -a -o /opt/app main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o /opt/app main.go
 
 ##################################
 
