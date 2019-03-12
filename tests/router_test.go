@@ -1,3 +1,5 @@
+// +build integration
+
 package tests
 
 import (
@@ -7,12 +9,11 @@ import (
 	"path"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	serverfull "github.com/asecurityteam/serverfull/pkg"
 	"github.com/asecurityteam/serverfull/pkg/domain"
 	"github.com/asecurityteam/serverfull/pkg/handlerfetcher"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestURLRouting(t *testing.T) {
