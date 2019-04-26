@@ -56,7 +56,7 @@ func StartMode(ctx context.Context, s settings.Source, f Fetcher, mode string, t
 	case strings.EqualFold(mode, BuildModeHTTP):
 		return StartHTTP(ctx, s, f)
 	case strings.EqualFold(mode, BuildModeHTTPMock):
-		// return StartHTTPMock(ctx, s, f)
+		return StartHTTPMock(ctx, s, f)
 	case strings.EqualFold(mode, BuildModeLambda):
 		// return StartLambda(ctx, s, f, target)
 	case strings.EqualFold(mode, BuildModeLambdaMock):
@@ -90,4 +90,10 @@ func StartHTTP(ctx context.Context, s settings.Source, f Fetcher) error {
 		return err
 	}
 	return rt.Run()
+}
+
+// StartHTTP runs the HTTP API with mocked out functions.
+func StartHTTPMock(ctx context.Context, s settings.Source, f Fetcher) error {
+	f = &MockingFetcher{Fetcher: f}
+	return StartHTTPMock(ctx, s, f)
 }
