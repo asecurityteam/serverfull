@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// Static is an implementation of the Fetcher that maintains a static mapping
+// StaticFetcher is an implementation of the Fetcher that maintains a static mapping
 // of names to Function instances. This implementation is a highly simplified form
 // for the purposes of reducing risk in operations. Notably, runtimes that leverage
 // this implementation do not need to perform any orchestration of external systems
@@ -18,14 +18,14 @@ import (
 // options for updating or adding in-place. Operators and developers who choose this
 // feature must take care that redeployments of the system do not cause downtime as
 // all Functions will be affected together.
-type Static struct {
+type StaticFetcher struct {
 	// Functions is the underlying static map of function names to executable
 	// functions. The keys of the map will be used as the name of the Function.
 	Functions map[string]Function
 }
 
 // Fetch resolves the name using the internal mapping.
-func (f *Static) Fetch(ctx context.Context, name string) (Function, error) {
+func (f *StaticFetcher) Fetch(ctx context.Context, name string) (Function, error) {
 	h, ok := f.Functions[name]
 	if !ok {
 		return nil, NotFoundError{ID: name}
