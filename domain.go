@@ -24,10 +24,14 @@ type Stat = runhttp.Stat
 // StatFn extracts a metrics client from the context.
 type StatFn = runhttp.StatFn
 
-// Handler is an executable lambda function and is an alias
-// for the type of the same name in the AWS Lambda SDK for
-// go.
-type Handler = lambda.Handler
+// Function is an executable lambda function. This extends
+// the official lambda SDK concept of a Handler in order to
+// also provide the underlying function signature which is
+// usually masked when converting any function to a lambda.Handler.
+type Function interface {
+	lambda.Handler
+	Source() interface{}
+}
 
 // URLParamFn should be accepted by HTTP handlers that need
 // to interface with the mux in use in order to extract request
@@ -36,13 +40,13 @@ type Handler = lambda.Handler
 // be coupled.
 type URLParamFn func(ctx context.Context, name string) string
 
-// HandlerFetcher is a pluggable component that enables different
+// Fetcher is a pluggable component that enables different
 // loading strategies functions.
-type HandlerFetcher interface {
-	// FetchHandler uses some implementation of a loading strategy
+type Fetcher interface {
+	// Fetch uses some implementation of a loading strategy
 	// to fetch the Handler with the given name. If a matching Handler
 	// cannot be found then this component must emit a NotFoundError.
-	FetchHandler(ctx context.Context, name string) (Handler, error)
+	Fetch(ctx context.Context, name string) (Function, error)
 }
 
 // NotFoundError represents a failed lookup for a resource.
