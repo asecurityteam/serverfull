@@ -106,6 +106,13 @@ func StartHTTPMock(ctx context.Context, s settings.Source, f Fetcher) error {
 	return StartHTTP(ctx, s, f)
 }
 
+// LambdaStartFn is a reference to lambda.StartHandler that is exported
+// for cases where a custom net/rpc server needs to run rather than the
+// true native lambda server. For example, this project leverages this
+// feature in our integration tests where we add some additional signal
+// handling for testing purposes.
+var LambdaStartFn = lambda.StartHandler
+
 // StartLambda runs the target function from the fetcher as a
 // native lambda server.
 func StartLambda(ctx context.Context, s settings.Source, f Fetcher, target string) error {
@@ -113,7 +120,7 @@ func StartLambda(ctx context.Context, s settings.Source, f Fetcher, target strin
 	if err != nil {
 		return err
 	}
-	lambda.Start(fn)
+	LambdaStartFn(fn)
 	return nil
 }
 
