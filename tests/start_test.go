@@ -172,7 +172,7 @@ func TestStartHTTP(t *testing.T) {
 			// the runtime will intercept the call. This enables us to test
 			// the signal based shutdown behavior.
 			proc, _ := os.FindProcess(os.Getpid())
-			proc.Signal(os.Interrupt)
+			_ = proc.Signal(os.Interrupt)
 			select {
 			case <-time.After(time.Second):
 				t.Fatal("timed out waiting for exit")

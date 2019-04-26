@@ -12,7 +12,7 @@ import (
 type mInput struct{}
 type mOutput struct{}
 
-func testMFunc(ctx context.Context, in mInput) (mOutput, error) {
+func testMFunc(ctx context.Context, in mInput) (mOutput, error) { //nolint
 	return mOutput{}, nil
 }
 

@@ -73,7 +73,7 @@ func (fn *Function) Invoke(req *messages.InvokeRequest, response *messages.Invok
 	}
 	invokeContext = lambdacontext.NewContext(invokeContext, lc)
 
-	invokeContext = context.WithValue(invokeContext, "x-amzn-trace-id", req.XAmznTraceId)
+	invokeContext = context.WithValue(invokeContext, "x-amzn-trace-id", req.XAmznTraceId) //nolint
 
 	payload, err := fn.handler.Invoke(invokeContext, req.Payload)
 	if err != nil {
@@ -137,7 +137,7 @@ func getPanicStack() []*messages.InvokeResponse_Error_StackFrame {
 }
 
 func convertStack(s []uintptr) []*messages.InvokeResponse_Error_StackFrame {
-	var converted []*messages.InvokeResponse_Error_StackFrame
+	var converted []*messages.InvokeResponse_Error_StackFrame //nolint
 	frames := runtime.CallersFrames(s)
 
 	for {
