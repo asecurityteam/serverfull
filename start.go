@@ -7,35 +7,32 @@ import (
 
 	"github.com/asecurityteam/runhttp"
 	"github.com/asecurityteam/settings"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 const (
 	// BuildModeHTTP is the standard mode of running an HTTP server
 	// that implements parts of the Lambda API.
 	BuildModeHTTP = "http"
-	// BuildModeHTTPMock runs the HTTP server but with mocked versions
-	// of the lambda functions loaded.
-	BuildModeHTTPMock = "http_mock"
 	// BuildModeLambda runs the official lambda server using the lambda
 	// SDK. Using this mode requires the TargetFunction value to be set.
 	BuildModeLambda = "lambda"
-	// BuildModeLambdaMock runs the official lambda server using the lambda
-	// SDK but with a mocked version of the loaded function. Using this mode
-	// requires the TargetFunction value to be set.
-	BuildModeLambdaMock = "lambda_mock"
 )
 
 var (
 	// BuildMode determines the behavior of the Start method. There
 	// are several ways to use this value. The suggested way is through
-	// build variables by adding `-ldflags "-X github.com/asecurityteam.BuildMode=<value>"`
+	// build variables by adding `-ldflags "-X github.com/asecurityteam/serverfull.BuildMode=<value>"`
 	// to `go build` or `go run` commands. If you want to use environment variables
 	// instead then you can set this variable in code before calling Start
 	// like `serverfull.BuildMode=os.Getenv("MYENVVAR")`.
 	//
-	// Alternatively, the StartMode() method may be used if you prefer to pass in
-	// parameters via code rather than toggling the global setting.
+	// Alternatively, the StartMode() or StartModeMock() method may be used if you
+	// prefer to pass in parameters via code rather than toggling the global setting.
 	BuildMode = BuildModeHTTP
+	// MockMode determines whether or not to mock out the defined functions before
+	// starting the server. Any non-empty string value will trigger mocking.
+	MockMode = ""
 	// TargetFunction is used when building in a native lambda mode to select a
 	// single function to run. This value can be set in all the same ways as the
 	// BuildMode value.
@@ -46,6 +43,9 @@ var (
 // features. By default, this method will start the lambda HTTP API and
 // will invoke methods loaded using the given Fetcher.
 func Start(ctx context.Context, s settings.Source, f Fetcher) error {
+	if MockMode != "" {
+		return StartModeMock(ctx, s, f, BuildMode, TargetFunction)
+	}
 	return StartMode(ctx, s, f, BuildMode, TargetFunction)
 }
 
@@ -55,16 +55,24 @@ func StartMode(ctx context.Context, s settings.Source, f Fetcher, mode string, t
 	switch {
 	case strings.EqualFold(mode, BuildModeHTTP):
 		return StartHTTP(ctx, s, f)
-	case strings.EqualFold(mode, BuildModeHTTPMock):
-		return StartHTTPMock(ctx, s, f)
 	case strings.EqualFold(mode, BuildModeLambda):
-		// return StartLambda(ctx, s, f, target)
-	case strings.EqualFold(mode, BuildModeLambdaMock):
-		// return StartLambdaMock(ctx, s, f, target)
+		return StartLambda(ctx, s, f, target)
 	default:
 		return fmt.Errorf("unknown build mode %s", mode)
 	}
-	return fmt.Errorf("TODO: Complete the rest of the cases.")
+}
+
+// StartModeMock works just like StartMode but runs with mocked out
+// functions.
+func StartModeMock(ctx context.Context, s settings.Source, f Fetcher, mode string, target string) error {
+	switch {
+	case strings.EqualFold(mode, BuildModeHTTP):
+		return StartHTTPMock(ctx, s, f)
+	case strings.EqualFold(mode, BuildModeLambda):
+		return StartLambdaMock(ctx, s, f, target)
+	default:
+		return fmt.Errorf("unknown build mode %s", mode)
+	}
 }
 
 func newHTTPRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp.Runtime, error) {
@@ -92,8 +100,26 @@ func StartHTTP(ctx context.Context, s settings.Source, f Fetcher) error {
 	return rt.Run()
 }
 
-// StartHTTP runs the HTTP API with mocked out functions.
+// StartHTTPMock runs the HTTP API with mocked out functions.
 func StartHTTPMock(ctx context.Context, s settings.Source, f Fetcher) error {
 	f = &MockingFetcher{Fetcher: f}
-	return StartHTTPMock(ctx, s, f)
+	return StartHTTP(ctx, s, f)
+}
+
+// StartLambda runs the target function from the fetcher as a
+// native lambda server.
+func StartLambda(ctx context.Context, s settings.Source, f Fetcher, target string) error {
+	fn, err := f.Fetch(ctx, target)
+	if err != nil {
+		return err
+	}
+	lambda.Start(fn)
+	return nil
+}
+
+// StartLambdaMock starts the native lambda server with a mocked out
+// function.
+func StartLambdaMock(ctx context.Context, s settings.Source, f Fetcher, target string) error {
+	f = &MockingFetcher{Fetcher: f}
+	return StartLambda(ctx, s, f, target)
 }
