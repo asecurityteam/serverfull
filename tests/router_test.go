@@ -9,21 +9,18 @@ import (
 	"path"
 	"testing"
 
-	serverfull "github.com/asecurityteam/serverfull/pkg"
-	"github.com/asecurityteam/serverfull/pkg/domain"
-	"github.com/asecurityteam/serverfull/pkg/handlerfetcher"
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/stretchr/testify/assert"
+	"github.com/asecurityteam/serverfull"
+	"github.com/stretchr/testify/require"
 )
 
 func TestURLRouting(t *testing.T) {
-	fetcher := &handlerfetcher.Static{
-		Handlers: map[string]domain.Handler{
-			"hello": lambda.NewHandler(func() (string, error) { return "Hello ƛ!", nil }),
+	fetcher := &serverfull.StaticFetcher{
+		Functions: map[string]serverfull.Function{
+			"hello": serverfull.NewFunction(func() (string, error) { return "Hello ƛ!", nil }),
 		},
 	}
 	conf := &serverfull.RouterConfig{
-		HandlerFetcher: fetcher,
+		Fetcher: fetcher,
 	}
 	router := serverfull.NewRouter(conf)
 	server := httptest.NewServer(router)
@@ -33,13 +30,13 @@ func TestURLRouting(t *testing.T) {
 	u.Path = path.Join(u.Path, "2015-03-31", "functions", "hello", "invocations")
 	req, _ := http.NewRequest(http.MethodPost, u.String(), http.NoBody)
 	resp, err := http.DefaultClient.Do(req)
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Nil(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	u, _ = url.Parse(server.URL)
 	u.Path = path.Join(u.Path, "healthcheck")
 	req, _ = http.NewRequest(http.MethodGet, u.String(), http.NoBody)
 	resp, err = http.DefaultClient.Do(req)
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Nil(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 }

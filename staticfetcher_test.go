@@ -1,22 +1,21 @@
-package handlerfetcher
+package serverfull
 
 import (
 	"context"
 	"reflect"
 	"testing"
 
-	"github.com/asecurityteam/serverfull/pkg/domain"
 	"github.com/golang/mock/gomock"
 )
 
-func TestStatic_FetchHandler(t *testing.T) {
+func TestStatic_Fetch(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	found := NewMockHandler(ctrl)
+	found := NewMockFunction(ctrl)
 
 	type fields struct {
-		Handlers map[string]domain.Handler
+		Functions map[string]Function
 	}
 	type args struct {
 		ctx  context.Context
@@ -26,22 +25,22 @@ func TestStatic_FetchHandler(t *testing.T) {
 		name        string
 		fields      fields
 		args        args
-		want        domain.Handler
+		want        Function
 		wantErr     bool
 		wantErrType reflect.Type
 	}{
 		{
-			name:        "missing handler",
-			fields:      fields{Handlers: make(map[string]domain.Handler)},
+			name:        "missing function",
+			fields:      fields{Functions: make(map[string]Function)},
 			args:        args{ctx: context.Background(), name: "missing"},
 			want:        nil,
 			wantErr:     true,
-			wantErrType: reflect.TypeOf(domain.NotFoundError{}),
+			wantErrType: reflect.TypeOf(NotFoundError{}),
 		},
 		{
-			name: "found handler",
+			name: "found function",
 			fields: fields{
-				Handlers: map[string]domain.Handler{
+				Functions: map[string]Function{
 					"found": found,
 				},
 			},
@@ -52,22 +51,22 @@ func TestStatic_FetchHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &Static{
-				Handlers: tt.fields.Handlers,
+			f := &StaticFetcher{
+				Functions: tt.fields.Functions,
 			}
-			got, err := f.FetchHandler(tt.args.ctx, tt.args.name)
+			got, err := f.Fetch(tt.args.ctx, tt.args.name)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Static.FetchHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("StaticFetcher.Fetch() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if (err != nil) && tt.wantErr && tt.wantErrType != nil {
 				errType := reflect.TypeOf(err)
 				if errType != tt.wantErrType {
-					t.Errorf("Static.FetchHandler() error = %v, wantErrType %v", errType, tt.wantErrType)
+					t.Errorf("StaticFetcher.Fetch() error = %v, wantErrType %v", errType, tt.wantErrType)
 				}
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Static.FetchHandler() = %v, want %v", got, tt.want)
+				t.Errorf("StaticFetcher.Fetch() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/asecurityteam/runhttp"
-	"github.com/asecurityteam/serverfull/pkg/domain"
-	v1 "github.com/asecurityteam/serverfull/pkg/handlers/v1"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -18,20 +16,20 @@ type RouterConfig struct {
 	// poll for liveliness. The default value is /healthcheck
 	HealthCheck string
 
-	// HandlerFetcher is the Lambda function loader that will
+	// Fetcher is the Lambda function loader that will
 	// be used by the runtime. There is no default for this value.
-	HandlerFetcher domain.HandlerFetcher
+	Fetcher Fetcher
 
 	// LogFn is used to extract the request logger from the request
 	// context. The default value is logevent.FromContext.
-	LogFn domain.LogFn
+	LogFn LogFn
 	// StatFn is used to extract the request stat client from the
 	// request context. The default value is xstats.FromContext.
-	StatFn domain.StatFn
+	StatFn StatFn
 	// URLParamFn is used to extract URL parameters from the request.
 	// The default value is chi.URLParam to match the usage of chi
 	// as a mux in the default case.
-	URLParamFn domain.URLParamFn
+	URLParamFn URLParamFn
 }
 
 func applyDefaults(conf *RouterConfig) *RouterConfig {
@@ -59,8 +57,8 @@ func NewRouter(conf *RouterConfig) *chi.Mux {
 	router := chi.NewMux()
 	router.Use(middleware.Heartbeat(conf.HealthCheck))
 
-	invokeHandler := &v1.Invoke{
-		Fetcher:    conf.HandlerFetcher,
+	invokeHandler := &Invoke{
+		Fetcher:    conf.Fetcher,
 		LogFn:      conf.LogFn,
 		StatFn:     conf.StatFn,
 		URLParamFn: conf.URLParamFn,

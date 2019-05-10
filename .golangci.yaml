@@ -4,6 +4,8 @@ run:
   tests: true
   skip-dirs:
     - .coverage
+  build-tags:
+    - integration
 output:
   format: colored-line-number
   print-issued-lines: true

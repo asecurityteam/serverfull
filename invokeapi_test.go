@@ -1,4 +1,4 @@
-package v1
+package serverfull
 
 import (
 	"bytes"
@@ -6,26 +6,47 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/asecurityteam/logevent"
-	"github.com/asecurityteam/serverfull/pkg/domain"
 	"github.com/golang/mock/gomock"
-	"github.com/rs/xstats"
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	nullLogger = logevent.New(logevent.Config{Output: ioutil.Discard})
-	nullLogFn  = func(context.Context) domain.Logger { return nullLogger }
-	nullStatFn = xstats.FromContext
-	testName   = "test"
-)
+type nopLogger struct{}
+
+func (*nopLogger) Debug(event interface{})                 {}
+func (*nopLogger) Info(event interface{})                  {}
+func (*nopLogger) Warn(event interface{})                  {}
+func (*nopLogger) Error(event interface{})                 {}
+func (*nopLogger) SetField(name string, value interface{}) {}
+func (logger *nopLogger) Copy() Logger {
+	return logger
+}
+
+var testLogger = &nopLogger{}
+
+func testLogFn(context.Context) Logger { return testLogger }
+
+type nopStat struct{}
+
+func (*nopStat) Gauge(stat string, value float64, tags ...string)        {}
+func (*nopStat) Count(stat string, count float64, tags ...string)        {}
+func (*nopStat) Histogram(stat string, value float64, tags ...string)    {}
+func (*nopStat) Timing(stat string, value time.Duration, tags ...string) {}
+func (*nopStat) AddTags(tags ...string)                                  {}
+func (*nopStat) GetTags() []string {
+	return []string{}
+}
+
+var testStat = &nopStat{}
+
+func testStatFn(context.Context) Stat { return testStat }
+
+var testName = "test"
 
 type testCtxKey string
 
@@ -135,18 +156,18 @@ func Test_responseFromError(t *testing.T) {
 	}{
 		{
 			name: "non-pointer",
-			args: args{err: domain.NotFoundError{ID: testName}},
+			args: args{err: NotFoundError{ID: testName}},
 			want: lambdaError{
-				Message:    domain.NotFoundError{ID: testName}.Error(),
+				Message:    NotFoundError{ID: testName}.Error(),
 				Type:       "NotFoundError",
 				StackTrace: errResponseStackTrace,
 			},
 		},
 		{
 			name: "pointer",
-			args: args{err: &domain.NotFoundError{ID: testName}},
+			args: args{err: &NotFoundError{ID: testName}},
 			want: lambdaError{
-				Message:    domain.NotFoundError{ID: testName}.Error(),
+				Message:    NotFoundError{ID: testName}.Error(),
 				Type:       "NotFoundError",
 				StackTrace: errResponseStackTrace,
 			},
@@ -166,18 +187,18 @@ func TestInvokeFunctionNotFound(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
+	fetcher := NewMockFetcher(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
 	path := fmt.Sprintf("/2015-03-31/functions/%s/invocations", fnName)
 	r, _ := http.NewRequest(http.MethodPost, path, http.NoBody)
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(nil, domain.NotFoundError{ID: fnName})
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(nil, NotFoundError{ID: fnName})
 	handler.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusNotFound, w.Code)
@@ -188,18 +209,18 @@ func TestInvokeFunctionFetchFailure(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
+	fetcher := NewMockFetcher(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
 	path := fmt.Sprintf("/2015-03-31/functions/%s/invocations", fnName)
 	r, _ := http.NewRequest(http.MethodPost, path, http.NoBody)
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(nil, errors.New("fail"))
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(nil, errors.New("fail"))
 	handler.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -210,12 +231,12 @@ func TestInvokeFunctionInvalidInvocationType(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
-	fn := NewMockHandler(ctrl)
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
@@ -223,7 +244,7 @@ func TestInvokeFunctionInvalidInvocationType(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodPost, path, http.NoBody)
 	r.Header.Set(invocationTypeHeader, "unknown")
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(fn, nil)
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
 	handler.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -234,12 +255,12 @@ func TestInvokeFunctionDryRun(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
-	fn := NewMockHandler(ctrl)
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
@@ -247,7 +268,7 @@ func TestInvokeFunctionDryRun(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodPost, path, http.NoBody)
 	r.Header.Set(invocationTypeHeader, invocationTypeDryRun)
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(fn, nil)
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
 	handler.ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusNoContent, w.Code)
@@ -259,12 +280,12 @@ func TestInvokeFunctionEvent(t *testing.T) {
 
 	done := make(chan interface{})
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
-	fn := NewMockHandler(ctrl)
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
@@ -274,7 +295,7 @@ func TestInvokeFunctionEvent(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
 	r.Header.Set(invocationTypeHeader, invocationTypeEvent)
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(fn, nil)
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
 	fn.EXPECT().Invoke(gomock.Any(), input).Do(func(context.Context, []byte) {
 		close(done)
 	}).Return(output, nil)
@@ -293,12 +314,12 @@ func TestInvokeFunctionRequestResponseBadInput(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
-	fn := NewMockHandler(ctrl)
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
@@ -306,7 +327,7 @@ func TestInvokeFunctionRequestResponseBadInput(t *testing.T) {
 	input := []byte("data")
 	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(fn, nil)
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
 	fn.EXPECT().Invoke(gomock.Any(), input).Return(nil, &json.InvalidUnmarshalError{Type: reflect.TypeOf(1)})
 	handler.ServeHTTP(w, r)
 
@@ -318,12 +339,12 @@ func TestInvokeFunctionRequestResponseFunctionError(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
-	fn := NewMockHandler(ctrl)
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
@@ -331,7 +352,7 @@ func TestInvokeFunctionRequestResponseFunctionError(t *testing.T) {
 	input := []byte("data")
 	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(fn, nil)
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
 	fn.EXPECT().Invoke(gomock.Any(), input).Return(nil, errors.New("fail"))
 	handler.ServeHTTP(w, r)
 
@@ -343,12 +364,12 @@ func TestInvokeFunctionRequestResponseSuccess(t *testing.T) {
 	defer ctrl.Finish()
 
 	fnName := testName
-	fetcher := NewMockHandlerFetcher(ctrl)
-	fn := NewMockHandler(ctrl)
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
 	handler := &Invoke{
 		Fetcher:    fetcher,
-		LogFn:      nullLogFn,
-		StatFn:     nullStatFn,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
 		URLParamFn: URLParam(fnName).Get,
 	}
 	w := httptest.NewRecorder()
@@ -357,7 +378,7 @@ func TestInvokeFunctionRequestResponseSuccess(t *testing.T) {
 	output := []byte("response")
 	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
 
-	fetcher.EXPECT().FetchHandler(gomock.Any(), fnName).Return(fn, nil)
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
 	fn.EXPECT().Invoke(gomock.Any(), input).Return(output, nil)
 	handler.ServeHTTP(w, r)
 

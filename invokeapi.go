@@ -1,4 +1,4 @@
-package v1
+package serverfull
 
 import (
 	"context"
@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-
-	"github.com/asecurityteam/serverfull/pkg/domain"
 )
 
 const (
@@ -65,19 +63,19 @@ type lambdaError struct {
 // -	The "Function-Error" header is always "Unhandled" in the event
 //		of an exception.
 type Invoke struct {
-	LogFn      domain.LogFn
-	StatFn     domain.StatFn
-	URLParamFn domain.URLParamFn
-	Fetcher    domain.HandlerFetcher
+	LogFn      LogFn
+	StatFn     StatFn
+	URLParamFn URLParamFn
+	Fetcher    Fetcher
 }
 
 func (h *Invoke) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fnName := h.URLParamFn(r.Context(), "functionName")
-	fn, errFn := h.Fetcher.FetchHandler(r.Context(), fnName)
+	fn, errFn := h.Fetcher.Fetch(r.Context(), fnName)
 	switch errFn.(type) {
 	case nil:
 		break
-	case domain.NotFoundError:
+	case NotFoundError:
 		w.WriteHeader(http.StatusNotFound)
 		_ = json.NewEncoder(w).Encode(responseFromError(errFn))
 		return
