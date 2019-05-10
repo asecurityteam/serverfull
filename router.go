@@ -3,7 +3,6 @@ package serverfull
 import (
 	"net/http"
 
-	"github.com/asecurityteam/runhttp"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -37,10 +36,10 @@ func applyDefaults(conf *RouterConfig) *RouterConfig {
 		conf.HealthCheck = "/healthcheck"
 	}
 	if conf.LogFn == nil {
-		conf.LogFn = runhttp.LoggerFromContext
+		conf.LogFn = LoggerFromContext
 	}
 	if conf.StatFn == nil {
-		conf.StatFn = runhttp.StatFromContext
+		conf.StatFn = StatFromContext
 	}
 	if conf.URLParamFn == nil {
 		conf.URLParamFn = chi.URLParamFromCtx

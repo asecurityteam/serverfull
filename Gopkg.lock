@@ -14,11 +14,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f0efb70549251a537f06f31578b98ae7b856f7f067cc1cc41c1d6eadcc97928e"
+  digest = "1:fe321de7854c65af149fe7c66a7ed3ad82046902536e1aa41ec509f5fb942426"
   name = "github.com/asecurityteam/runhttp"
   packages = ["."]
   pruneopts = "UT"
-  revision = "59625dff40b30e0db17b88a6547a8e3232a57eda"
+  revision = "60620809c4931ced5fde6400c2462236cf3e9c16"
 
 [[projects]]
   branch = "master"
@@ -76,12 +76,12 @@
   version = "v2.2.2"
 
 [[projects]]
-  digest = "1:b60efdeb75d3c0ceed88783ac2495256aba3491a537d0f31401202579fd62a94"
+  digest = "1:be408f349cae090a7c17a279633d6e62b00068e64af66a582cae0983de8890ea"
   name = "github.com/golang/mock"
   packages = ["gomock"]
   pruneopts = "UT"
-  revision = "51421b967af1f557f93a59e0057aaf15ca02e29c"
-  version = "v1.2.0"
+  revision = "9fa652df1129bef0e734c9cf9bf6dbae9ef3b9fa"
+  version = "1.3.1"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -147,7 +147,7 @@
   name = "golang.org/x/net"
   packages = ["context"]
   pruneopts = "UT"
-  revision = "3a22650c66bd7f4fb6d1e8072ffd7b75c8a27898"
+  revision = "a4d6f7feada510cc50e69a37b484cb0fdc6b7876"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -157,6 +157,8 @@
     "github.com/asecurityteam/runhttp",
     "github.com/asecurityteam/settings",
     "github.com/aws/aws-lambda-go/lambda",
+    "github.com/aws/aws-lambda-go/lambda/messages",
+    "github.com/aws/aws-lambda-go/lambdacontext",
     "github.com/go-chi/chi",
     "github.com/go-chi/chi/middleware",
     "github.com/golang/mock/gomock",

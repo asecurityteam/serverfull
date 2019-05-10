@@ -4,25 +4,32 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/asecurityteam/runhttp"
+	"github.com/asecurityteam/logevent"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/rs/xstats"
 )
 
 // Logger is an alias for the chosen project logging library
 // which is, currently, logevent. All references in the project
 // should be to this name rather than logevent directly.
-type Logger = runhttp.Logger
+type Logger = logevent.Logger
 
 // LogFn extracts a logger from the context.
-type LogFn = runhttp.LogFn
+type LogFn = func(context.Context) Logger
+
+// LoggerFromContext extracts the current logger.
+var LoggerFromContext = logevent.FromContext
 
 // Stat is an alias for the chosen project metrics library
 // which is, currently, xstats. All references in the project
 // should be to this name rather than xstats directly.
-type Stat = runhttp.Stat
+type Stat = xstats.XStater
 
 // StatFn extracts a metrics client from the context.
-type StatFn = runhttp.StatFn
+type StatFn = func(context.Context) Stat
+
+// StatFromContext extracts the current stat client.
+var StatFromContext = xstats.FromContext
 
 // Function is an executable lambda function. This extends
 // the official lambda SDK concept of a Handler in order to

@@ -75,7 +75,7 @@ func StartModeMock(ctx context.Context, s settings.Source, f Fetcher, mode strin
 	}
 }
 
-func newHTTPRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp.Runtime, error) {
+func newRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp.Runtime, error) {
 	conf := &RouterConfig{
 		Fetcher: f,
 	}
@@ -93,7 +93,7 @@ func newHTTPRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp
 
 // StartHTTP runs the HTTP API.
 func StartHTTP(ctx context.Context, s settings.Source, f Fetcher) error {
-	rt, err := newHTTPRuntime(ctx, s, f)
+	rt, err := newRuntime(ctx, s, f)
 	if err != nil {
 		return err
 	}
@@ -116,6 +116,24 @@ var LambdaStartFn = lambda.StartHandler
 // StartLambda runs the target function from the fetcher as a
 // native lambda server.
 func StartLambda(ctx context.Context, s settings.Source, f Fetcher, target string) error {
+	rt, err := newRuntime(ctx, s, f)
+	if err != nil {
+		return err
+	}
+	// We hit an edge case in the go type system as it relates to type aliases.
+	// The runhttp alias of `github.com/asecurityteam/logevent` resolves as
+	// exactly that: `github.com/asecurityteam/logevent`. However, our own alias
+	// here of `type Logger = logevent.Logger` actually resolves to
+	// `github.com/asecurityteam/serverfull/vendor/github.com/asecurityteam/logevent`
+	// which causes the compiler to error because the types are prefixed with
+	// different package names. These two types are exactly the same but the
+	// compiler is unable to figure this out. As a result we must erase the
+	// compiler's knowledge of the type by switching to empty interface and then
+	// re-type the value as our Logger.
+	var typeHack interface{} = rt.Logger
+	f = &loggingFetcher{Fetcher: f, Logger: typeHack.(Logger)}
+	typeHack = rt.Stats
+	f = &statFetcher{Fetcher: f, Stat: typeHack.(Stat)}
 	fn, err := f.Fetch(ctx, target)
 	if err != nil {
 		return err
