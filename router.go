@@ -29,6 +29,8 @@ type RouterConfig struct {
 	// The default value is chi.URLParam to match the usage of chi
 	// as a mux in the default case.
 	URLParamFn URLParamFn
+	// MockMode should be set to enable mock mode features like error simulation.
+	MockMode bool
 }
 
 func applyDefaults(conf *RouterConfig) *RouterConfig {
@@ -61,6 +63,7 @@ func NewRouter(conf *RouterConfig) *chi.Mux {
 		LogFn:      conf.LogFn,
 		StatFn:     conf.StatFn,
 		URLParamFn: conf.URLParamFn,
+		MockMode:   conf.MockMode,
 	}
 
 	router.Method(http.MethodPost, "/2015-03-31/functions/{functionName}/invocations", invokeHandler)

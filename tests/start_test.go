@@ -5,6 +5,7 @@ package tests
 import (
 	"context"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/rpc"
 	"os"
@@ -39,8 +40,8 @@ func logstat(ctx context.Context) {
 func TestStart(t *testing.T) {
 	ctx := context.Background()
 	functions := map[string]serverfull.Function{
-		"hello":   serverfull.NewFunction(hello),
-		"logstat": serverfull.NewFunction(logstat),
+		"hello": serverfull.NewFunction(hello),
+		"error": serverfull.NewFunctionWithErrors(hello, errors.New("mock mode")),
 	}
 	fetcher := &serverfull.StaticFetcher{Functions: functions}
 	// These tests are not safe to run in parallel but the subtest is parallel
@@ -69,7 +70,41 @@ func TestStart(t *testing.T) {
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusOK {
+				b, _ := ioutil.ReadAll(resp.Body)
 				t.Log(resp.StatusCode)
+				t.Log(string(b))
+				continue
+			}
+			return nil
+		}
+		return errors.New("failed to execute function")
+	}
+
+	// makeHTTPErrorCall attempts to execute the mock error simulation.
+	var makeHTTPErrorCall = func(t *testing.T) error {
+		// Ping the server until it is available or until we exceed a timeout
+		// value. This is to account for arbitrary start-up time of the server
+		// in the background.
+		stop := time.Now().Add(5 * time.Second)
+		for time.Now().Before(stop) {
+			time.Sleep(100 * time.Millisecond)
+			req, _ := http.NewRequest(
+				http.MethodPost,
+				"http://localhost:9090/2015-03-31/functions/error/invocations",
+				http.NoBody,
+			)
+			req.Header.Set("X-Amz-Invocation-Type", "Error")
+			req.Header.Set("X-Error-Type", "errorString")
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Log(err.Error())
+				continue
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusInternalServerError {
+				b, _ := ioutil.ReadAll(resp.Body)
+				t.Log(resp.StatusCode)
+				t.Log(string(b))
 				continue
 			}
 			return nil
@@ -141,6 +176,12 @@ func TestStart(t *testing.T) {
 		TargetFunction string
 		Execute        func(t *testing.T) error
 	}{
+		{
+			BuildMode:      serverfull.BuildModeHTTP,
+			MockMode:       "true",
+			TargetFunction: "error",
+			Execute:        makeHTTPErrorCall,
+		},
 		{
 			BuildMode:      serverfull.BuildModeHTTP,
 			MockMode:       "",

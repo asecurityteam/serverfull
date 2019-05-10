@@ -91,6 +91,23 @@ func newRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp.Run
 	return rt, err
 }
 
+func newMockRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp.Runtime, error) {
+	conf := &RouterConfig{
+		Fetcher:  f,
+		MockMode: true,
+	}
+	router := NewRouter(conf)
+	rtC := &runhttp.Component{Handler: router}
+	rt := new(runhttp.Runtime)
+	err := settings.NewComponent(
+		ctx,
+		&settings.PrefixSource{Source: s, Prefix: []string{"serverfull"}},
+		rtC,
+		rt,
+	)
+	return rt, err
+}
+
 // StartHTTP runs the HTTP API.
 func StartHTTP(ctx context.Context, s settings.Source, f Fetcher) error {
 	rt, err := newRuntime(ctx, s, f)
@@ -103,7 +120,11 @@ func StartHTTP(ctx context.Context, s settings.Source, f Fetcher) error {
 // StartHTTPMock runs the HTTP API with mocked out functions.
 func StartHTTPMock(ctx context.Context, s settings.Source, f Fetcher) error {
 	f = &MockingFetcher{Fetcher: f}
-	return StartHTTP(ctx, s, f)
+	rt, err := newMockRuntime(ctx, s, f)
+	if err != nil {
+		return err
+	}
+	return rt.Run()
 }
 
 // LambdaStartFn is a reference to lambda.StartHandler that is exported

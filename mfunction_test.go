@@ -28,6 +28,7 @@ func TestMockingFetcher(t *testing.T) {
 
 	fetcher.EXPECT().Fetch(gomock.Any(), gomock.Any()).Return(fn, nil)
 	fn.EXPECT().Source().Return(testMFunc)
+	fn.EXPECT().Errors().Return(nil)
 
 	mfn, _ := mFetcher.Fetch(context.Background(), "test")
 	require.IsType(t, testMFunc, mfn.Source()) // ensure the mock is the right signature

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -14,10 +15,12 @@ const (
 	invocationTypeRequestResponse = "RequestResponse"
 	invocationTypeEvent           = "Event"
 	invocationTypeDryRun          = "DryRun"
+	invocationTypeError           = "Error"
 	invocationVersionHeader       = "X-Amz-Executed-Version"
 	invocationErrorHeader         = "X-Amz-Function-Error"
 	invocationErrorTypeHandled    = "Handled"
 	invocationErrorTypeUnhandled  = "Unhandled"
+	invocationErrorTypeHeader     = "X-Error-Type"
 )
 
 // bgContext is used to detach the *http.Request context from the http.Handler
@@ -62,11 +65,22 @@ type lambdaError struct {
 //
 // -	The "Function-Error" header is always "Unhandled" in the event
 //		of an exception.
+//
+// This implementation also provides one extra feature which is that sending
+// an X-Amz-Invocation-Type header with the value "Error" and an X-Error-Type
+// header with the value of the corresponding "errType" value of a Lambda error
+// response will trigger that err while in mock mode. Not that this is only
+// enabled while running in mock mode and will only work if the given error
+// type is actually in the set of known error values returned by the function.
+// The only known error types are the ones provided when constructing the
+// function using NewFunctionWithErrors. A 404 is issued if the requested
+// error is not available.
 type Invoke struct {
 	LogFn      LogFn
 	StatFn     StatFn
 	URLParamFn URLParamFn
 	Fetcher    Fetcher
+	MockMode   bool
 }
 
 func (h *Invoke) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -120,6 +134,37 @@ func (h *Invoke) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if len(rb) > 0 {
 			_, _ = w.Write(rb)
 		}
+	case invocationTypeError:
+		if !h.MockMode {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(lambdaError{
+				Message:    fmt.Sprintf("InvocationType %s not valid", fnType),
+				Type:       "InvalidParameterValueException",
+				StackTrace: errResponseStackTrace,
+			})
+			return
+		}
+		targetType := r.Header.Get(invocationErrorTypeHeader)
+		var foundTypes []string
+		for _, err := range fn.Errors() {
+			errT := responseFromError(err)
+			foundTypes = append(foundTypes, errT.Type)
+			if strings.EqualFold(targetType, errT.Type) {
+				w.WriteHeader(statusFromError(err))
+				_ = json.NewEncoder(w).Encode(errT)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(lambdaError{
+			Message: fmt.Sprintf(
+				"ErrorType %s not found in the documented list. Choices are %v.",
+				targetType,
+				foundTypes,
+			),
+			Type:       "UnknownRequestMockError",
+			StackTrace: errResponseStackTrace,
+		})
 	default:
 		w.WriteHeader(http.StatusBadRequest) // Matches the InvalidParameterValueException code
 		_ = json.NewEncoder(w).Encode(lambdaError{
