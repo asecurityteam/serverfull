@@ -26,10 +26,21 @@ func hello() (string, error) {
 	return "Hello ƛ!", nil
 }
 
-func TestStartHTTP(t *testing.T) {
+type logLine struct {
+	Message string `logevent:"message,default=log-line"`
+}
+
+// logstat guarantees that the log and stat functions do not panic at runtime.
+func logstat(ctx context.Context) {
+	serverfull.LoggerFromContext(ctx).Info(logLine{})
+	serverfull.StatFromContext(ctx).Count("stat", 1)
+}
+
+func TestStart(t *testing.T) {
 	ctx := context.Background()
 	functions := map[string]serverfull.Function{
-		"hello": serverfull.NewFunction(hello),
+		"hello":   serverfull.NewFunction(hello),
+		"logstat": serverfull.NewFunction(logstat),
 	}
 	fetcher := &serverfull.StaticFetcher{Functions: functions}
 	// These tests are not safe to run in parallel but the subtest is parallel
@@ -154,8 +165,32 @@ func TestStartHTTP(t *testing.T) {
 			TargetFunction: "hello",
 			Execute:        makeRPCCall,
 		},
+		{
+			BuildMode:      serverfull.BuildModeHTTP,
+			MockMode:       "",
+			TargetFunction: "logstat",
+			Execute:        makeHTTPCall,
+		},
+		{
+			BuildMode:      serverfull.BuildModeHTTP,
+			MockMode:       "true",
+			TargetFunction: "logstat",
+			Execute:        makeHTTPCall,
+		},
+		{
+			BuildMode:      serverfull.BuildModeLambda,
+			MockMode:       "",
+			TargetFunction: "logstat",
+			Execute:        makeRPCCall,
+		},
+		{
+			BuildMode:      serverfull.BuildModeLambda,
+			MockMode:       "true",
+			TargetFunction: "logstat",
+			Execute:        makeRPCCall,
+		},
 	} {
-		t.Run(testCase.BuildMode+"/"+testCase.MockMode, func(t *testing.T) {
+		t.Run(testCase.BuildMode+"/"+testCase.MockMode+"/"+testCase.TargetFunction, func(t *testing.T) {
 			mut.Lock()
 			defer mut.Unlock()
 
