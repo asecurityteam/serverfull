@@ -385,3 +385,85 @@ func TestInvokeFunctionRequestResponseSuccess(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, output, w.Body.Bytes())
 }
+
+func TestInvokeErrorNoMockMode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fnName := testName
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
+	handler := &Invoke{
+		Fetcher:    fetcher,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
+		URLParamFn: URLParam(fnName).Get,
+	}
+	w := httptest.NewRecorder()
+	path := fmt.Sprintf("/2015-03-31/functions/%s/invocations", fnName)
+	input := []byte("data")
+	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
+	r.Header.Set(invocationTypeHeader, invocationTypeError)
+
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
+	handler.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestInvokeErrorNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fnName := testName
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
+	handler := &Invoke{
+		Fetcher:    fetcher,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
+		URLParamFn: URLParam(fnName).Get,
+		MockMode:   true,
+	}
+	w := httptest.NewRecorder()
+	path := fmt.Sprintf("/2015-03-31/functions/%s/invocations", fnName)
+	input := []byte("data")
+	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
+	r.Header.Set(invocationTypeHeader, invocationTypeError)
+	r.Header.Set(invocationErrorTypeHeader, "notexists")
+
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
+	fn.EXPECT().Errors().Return(nil)
+	handler.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestInvokeError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockErr := errors.New("testError")
+	fnName := testName
+	fetcher := NewMockFetcher(ctrl)
+	fn := NewMockFunction(ctrl)
+	handler := &Invoke{
+		Fetcher:    fetcher,
+		LogFn:      testLogFn,
+		StatFn:     testStatFn,
+		URLParamFn: URLParam(fnName).Get,
+		MockMode:   true,
+	}
+	w := httptest.NewRecorder()
+	path := fmt.Sprintf("/2015-03-31/functions/%s/invocations", fnName)
+	input := []byte("data")
+	r, _ := http.NewRequest(http.MethodPost, path, bytes.NewReader(input))
+	r.Header.Set(invocationTypeHeader, invocationTypeError)
+	r.Header.Set(invocationErrorTypeHeader, "errorString")
+
+	fetcher.EXPECT().Fetch(gomock.Any(), fnName).Return(fn, nil)
+	fn.EXPECT().Errors().Return([]error{mockErr})
+	handler.ServeHTTP(w, r)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}

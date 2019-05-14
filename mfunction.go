@@ -34,7 +34,10 @@ func mockFunction(f Function) Function {
 	}
 	mockFn := newMockFn(returnType, returnsError)
 	newFn := reflect.MakeFunc(t, mockFn)
-	return NewFunction(newFn.Interface())
+	return NewFunctionWithErrors(
+		newFn.Interface(),
+		f.Errors()...,
+	)
 }
 
 func newMockFn(returnType reflect.Type, returnsError bool) func(args []reflect.Value) []reflect.Value {

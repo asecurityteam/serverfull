@@ -33,6 +33,20 @@ func (m *MockFunction) EXPECT() *MockFunctionMockRecorder {
 	return m.recorder
 }
 
+// Errors mocks base method
+func (m *MockFunction) Errors() []error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Errors")
+	ret0, _ := ret[0].([]error)
+	return ret0
+}
+
+// Errors indicates an expected call of Errors
+func (mr *MockFunctionMockRecorder) Errors() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Errors", reflect.TypeOf((*MockFunction)(nil).Errors))
+}
+
 // Invoke mocks base method
 func (m *MockFunction) Invoke(arg0 context.Context, arg1 []byte) ([]byte, error) {
 	m.ctrl.T.Helper()

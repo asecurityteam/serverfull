@@ -38,6 +38,7 @@ var StatFromContext = xstats.FromContext
 type Function interface {
 	lambda.Handler
 	Source() interface{}
+	Errors() []error
 }
 
 // URLParamFn should be accepted by HTTP handlers that need
