@@ -5,6 +5,7 @@ package tests
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/rpc"
@@ -40,8 +41,9 @@ func logstat(ctx context.Context) {
 func TestStart(t *testing.T) {
 	ctx := context.Background()
 	functions := map[string]serverfull.Function{
-		"hello": serverfull.NewFunction(hello),
-		"error": serverfull.NewFunctionWithErrors(hello, errors.New("mock mode")),
+		"hello":   serverfull.NewFunction(hello),
+		"logstat": serverfull.NewFunction(logstat),
+		"error":   serverfull.NewFunctionWithErrors(hello, errors.New("mock mode")),
 	}
 	fetcher := &serverfull.StaticFetcher{Functions: functions}
 	// These tests are not safe to run in parallel but the subtest is parallel
@@ -52,7 +54,7 @@ func TestStart(t *testing.T) {
 
 	// makeHTTPCall attempts to execute the lambda over the invoke API until
 	// either a success case is found or the loop times out.
-	var makeHTTPCall = func(t *testing.T) error {
+	var makeHTTPCall = func(t *testing.T, port string) error {
 		// Ping the server until it is available or until we exceed a timeout
 		// value. This is to account for arbitrary start-up time of the server
 		// in the background.
@@ -60,7 +62,10 @@ func TestStart(t *testing.T) {
 		for time.Now().Before(stop) {
 			time.Sleep(100 * time.Millisecond)
 			resp, err := http.DefaultClient.Post(
-				"http://localhost:9090/2015-03-31/functions/hello/invocations",
+				fmt.Sprintf(
+					"http://localhost:%s/2015-03-31/functions/error/invocations",
+					port,
+				),
 				"application/json",
 				http.NoBody,
 			)
@@ -81,7 +86,7 @@ func TestStart(t *testing.T) {
 	}
 
 	// makeHTTPErrorCall attempts to execute the mock error simulation.
-	var makeHTTPErrorCall = func(t *testing.T) error {
+	var makeHTTPErrorCall = func(t *testing.T, port string) error {
 		// Ping the server until it is available or until we exceed a timeout
 		// value. This is to account for arbitrary start-up time of the server
 		// in the background.
@@ -90,7 +95,10 @@ func TestStart(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 			req, _ := http.NewRequest(
 				http.MethodPost,
-				"http://localhost:9090/2015-03-31/functions/error/invocations",
+				fmt.Sprintf(
+					"http://localhost:%s/2015-03-31/functions/error/invocations",
+					port,
+				),
 				http.NoBody,
 			)
 			req.Header.Set("X-Amz-Invocation-Type", "Error")
@@ -121,14 +129,14 @@ func TestStart(t *testing.T) {
 
 	// makeRPCCall imitates the internal execution path for the native lambda
 	// system by using the net/rpc module.
-	var makeRPCCall = func(t *testing.T) error {
+	var makeRPCCall = func(t *testing.T, port string) error {
 		// Ping the server until it is available or until we exceed a timeout
 		// value. This is to account for arbitrary start-up time of the server
 		// in the background.
 		stop := time.Now().Add(5 * time.Second)
 		for time.Now().Before(stop) {
 			time.Sleep(100 * time.Millisecond)
-			client, err := rpc.Dial("tcp", "localhost:9090")
+			client, err := rpc.Dial("tcp", "localhost:"+port)
 			if err != nil {
 				t.Log(err.Error())
 				continue
@@ -150,31 +158,11 @@ func TestStart(t *testing.T) {
 		return errors.New("failed to execute function")
 	}
 
-	// Rather than mock out the settings.Source, it ends up being easier
-	// to manage and slightly more realistic to use the ENV source but
-	// populated with a static ENV list. This is easier because we don't
-	// need to mock out the internal call structure of the settings.Source
-	// which is largely irrelevant to this test. This is more realistic
-	// because it leverages the public configuration API of the project
-	// rather than internal knowledge of the settings project. For example,
-	// these ENV vars are exactly the ones that users would set when running
-	// the system.
-	source, err := settings.NewEnvSource([]string{
-		"SERVERFULL_RUNTIME_HTTPSERVER_ADDRESS=localhost:9090",
-		"SERVERFULL_RUNTIME_LOGGER_OUTPUT=NULL",
-		"SERVERFULL_RUNTIME_STATS_OUTPUT=NULL",
-	})
-	require.Nil(t, err)
-	// The native lambda function defines and manages its own set of environment
-	// variables that we can't patch or mock out other than setting them for the
-	// duration of the test. This variable defines the listening port for the RPC
-	// server.
-	os.Setenv("_LAMBDA_SERVER_PORT", "9090")
 	for _, testCase := range []struct {
 		BuildMode      string
 		MockMode       string
 		TargetFunction string
-		Execute        func(t *testing.T) error
+		Execute        func(t *testing.T, port string) error
 	}{
 		{
 			BuildMode:      serverfull.BuildModeHTTP,
@@ -235,6 +223,31 @@ func TestStart(t *testing.T) {
 			mut.Lock()
 			defer mut.Unlock()
 
+			port, err := getPort()
+			require.NoError(t, err)
+
+			// The native lambda function defines and manages its own set of environment
+			// variables that we can't patch or mock out other than setting them for the
+			// duration of the test. This variable defines the listening port for the RPC
+			// server.
+			os.Setenv("_LAMBDA_SERVER_PORT", port)
+
+			// Rather than mock out the settings.Source, it ends up being easier
+			// to manage and slightly more realistic to use the ENV source but
+			// populated with a static ENV list. This is easier because we don't
+			// need to mock out the internal call structure of the settings.Source
+			// which is largely irrelevant to this test. This is more realistic
+			// because it leverages the public configuration API of the project
+			// rather than internal knowledge of the settings project. For example,
+			// these ENV vars are exactly the ones that users would set when running
+			// the system.
+			source, err := settings.NewEnvSource([]string{
+				"SERVERFULL_RUNTIME_HTTPSERVER_ADDRESS=localhost:" + port,
+				"SERVERFULL_RUNTIME_LOGGER_OUTPUT=NULL",
+				"SERVERFULL_RUNTIME_STATS_OUTPUT=NULL",
+			})
+			require.Nil(t, err)
+
 			serverfull.BuildMode = testCase.BuildMode
 			serverfull.MockMode = testCase.MockMode
 			serverfull.TargetFunction = testCase.TargetFunction
@@ -242,7 +255,7 @@ func TestStart(t *testing.T) {
 			go func() {
 				exit <- serverfull.Start(ctx, source, fetcher)
 			}()
-			require.NoError(t, testCase.Execute(t))
+			require.NoError(t, testCase.Execute(t, port))
 			// The runtime establishes a signal handler for the entire
 			// process. This means we have the process signal itself and
 			// the runtime will intercept the call. This enables us to test
