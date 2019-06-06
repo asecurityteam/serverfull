@@ -107,7 +107,7 @@ func main() {
     // discussed later in the docs.
     fetcher := &serverfull.StaticFetcher{Functions:functions}
     // Start the runtime.
-    if err := serverfull.Start(ctx, source, fetcher); err != nil {
+    if err := serverfull.StartHTTP(ctx, source, fetcher); err != nil {
         panic(err.Error())
     }
 }
@@ -165,56 +165,45 @@ deployments to do so.
 <a id="markdown-running-in-mock-mode" name="running-in-mock-mode"></a>
 ### Running In Mock Mode
 
-When building a binary with `go build` or running with `go run` you can pass in a
-build flag that swaps out all lambda functions registered with the server with a
-mocked version. The mock version will always return an empty version of the output
-struct and a `nil` error if either of those are returned from the source function. To
-enable this mode use:
+Mock mode inspects the signatures of each function being served and runs a
+version that only returns an empty version of the output and `nil` as the error.
+Systems that want to leverage mock mode will need to do something like this:
 
-```bash
-go build \
-    -ldflags "-X github.com/asecurityteam/serverfull.MockMode=true" \
-    main.go
-```
-
-Alternatively, if you prefer to manage these values through a runtime source, like
-environment variables, then you have a few options. The project exports a global flag
-variable called `serverfull.MockMode` which is same variable modified by the build
-flag. It defaults to an empty string to indicate that mocking is disabled. Rather
-than using the build flag you can set that value to any non-empty string to enable
-the mock mode. For example:
-
-```golang
-serverfull.MockMode = os.Getenv("RUN_IN_MOCK_MODE")
-serverfull.Start(ctx, source, fetcher) // Now running in mock mode.
-```
-
-If you would prefer not to rely on process wide flags then you also have the option
-of using individual runtime functions directly. There are methods called
-`serverfull.StartHTTPMock()` and `serverfull.StartHTTP()` which rely on no flags. For
-example:
-
-```golang
-if os.Getenv("RUN_IN_MOCK_MODE") == "" {
-    serverfull.StartHTTP(ctx, source, fetcher)
-} else {
-    serverfull.StartHTTPMock(ctx, source, fetcher)
+```go
+if mockMode {
+    // Start the mock runtime.
+    if err := serverfull.StartHTTPMock(ctx, source, fetcher); err != nil {
+        panic(err.Error())
+    }
+    return
+}
+// Start the real runtime.
+if err := serverfull.StartHTTP(ctx, source, fetcher); err != nil {
+    panic(err.Error())
 }
 ```
 
 <a id="markdown-building-lambda-binaries" name="building-lambda-binaries"></a>
 ### Building Lambda Binaries
 
-In the same manner that you can enable mock mode you can also enable a native lambda
-mode. The lambda mode causes the runtime to bypass the HTTP server that implements
-the Invoke API and runs `lambda.Start()` on a target function instead. This is
-provided for teams who want to build binaries that are compatible with AWS Lambda. To
-do this you must pass in two build flags:
+In the same manner that you can enable mock mode you can also enable a native
+lambda mode. The lambda mode causes the runtime to bypass the HTTP server that
+implements the Invoke API and runs `lambda.Start()` on a target function
+instead. This is provided for teams who want to build binaries that are
+compatible with AWS Lambda. To do this you would need to have something like:
 
-```bash
-go build \
-    -ldflags "-X github.com/asecurityteam/serverfull.BuildMode=lambda -X github.com/asecurityteam/serverfull.TargetFunction=hello" \
-    main.go
+```go
+if lambdaMode {
+    // Start the mock runtime.
+    if err := serverfull.StartLambda(ctx, source, fetcher, "myFunctionName"); err != nil {
+        panic(err.Error())
+    }
+    return
+}
+// Start the real runtime.
+if err := serverfull.StartHTTP(ctx, source, fetcher); err != nil {
+    panic(err.Error())
+}
 ```
 
 The native lambda build can only target a single function at a time so you _must_
@@ -226,29 +215,8 @@ there is a loading step. To keep consistent with lambda expectations we recommen
 only using the static loader for this process because the loading will be done at
 startup time.
 
-Just like the mock flag for the HTTP runtime, you may bypass the build flag in one of
-two ways if you want to manage the behavior switch differently. The first alternative
-is modifying the global flags with:
-
-```golang
-serverfull.BuildMode = serverfull.BuildModeLambda
-serverfull.TargetFunction = os.Getenv("TARGET_FUNCTION")
-serverfull.Start(ctx, source, fetcher)
-```
-
-The second alternative is to use the specific lambda runtime methods directly:
-
-```golang
-targetFunction := os.Getenv("TARGET_FUNCTION")
-if os.Getenv("RUN_IN_LAMBDA_MODE") == "" {
-    serverfull.StartLambda(ctx, source, fetcher, targetFunc)
-} else {
-    serverfull.StartHTTP(ctx, source, fetcher)
-}
-```
-
-The lambda build mode also supports running the function in mock mode using exactly
-the same build flags and variables as demonstrated in the mock mode section.
+The lambda build mode also supports running the function in mock mode by
+using `StartLambdaMock`.
 
 <a id="markdown-configuration" name="configuration"></a>
 ## Configuration

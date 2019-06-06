@@ -159,67 +159,65 @@ func TestStart(t *testing.T) {
 	}
 
 	for _, testCase := range []struct {
-		BuildMode      string
-		MockMode       string
+		StartFN        func(context.Context, settings.Source, serverfull.Fetcher) error
 		TargetFunction string
 		Execute        func(t *testing.T, port string) error
 	}{
 		{
-			BuildMode:      serverfull.BuildModeHTTP,
-			MockMode:       "true",
+			StartFN:        serverfull.StartHTTPMock,
 			TargetFunction: "error",
 			Execute:        makeHTTPErrorCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeHTTP,
-			MockMode:       "",
+			StartFN:        serverfull.StartHTTP,
 			TargetFunction: "hello",
 			Execute:        makeHTTPCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeHTTP,
-			MockMode:       "true",
+			StartFN:        serverfull.StartHTTPMock,
 			TargetFunction: "hello",
 			Execute:        makeHTTPCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeLambda,
-			MockMode:       "",
-			TargetFunction: "hello",
-			Execute:        makeRPCCall,
-		},
-		{
-			BuildMode:      serverfull.BuildModeLambda,
-			MockMode:       "true",
+			StartFN: func(ctx context.Context, source settings.Source, fetcher serverfull.Fetcher) error {
+				return serverfull.StartLambda(ctx, source, fetcher, "hello")
+			},
 			TargetFunction: "hello",
 			Execute:        makeRPCCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeHTTP,
-			MockMode:       "",
+			StartFN: func(ctx context.Context, source settings.Source, fetcher serverfull.Fetcher) error {
+				return serverfull.StartLambdaMock(ctx, source, fetcher, "hello")
+			},
+			TargetFunction: "hello",
+			Execute:        makeRPCCall,
+		},
+		{
+			StartFN:        serverfull.StartHTTP,
 			TargetFunction: "logstat",
 			Execute:        makeHTTPCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeHTTP,
-			MockMode:       "true",
+			StartFN:        serverfull.StartHTTPMock,
 			TargetFunction: "logstat",
 			Execute:        makeHTTPCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeLambda,
-			MockMode:       "",
+			StartFN: func(ctx context.Context, source settings.Source, fetcher serverfull.Fetcher) error {
+				return serverfull.StartLambda(ctx, source, fetcher, "logstat")
+			},
 			TargetFunction: "logstat",
 			Execute:        makeRPCCall,
 		},
 		{
-			BuildMode:      serverfull.BuildModeLambda,
-			MockMode:       "true",
+			StartFN: func(ctx context.Context, source settings.Source, fetcher serverfull.Fetcher) error {
+				return serverfull.StartLambdaMock(ctx, source, fetcher, "logstat")
+			},
 			TargetFunction: "logstat",
 			Execute:        makeRPCCall,
 		},
 	} {
-		t.Run(testCase.BuildMode+"/"+testCase.MockMode+"/"+testCase.TargetFunction, func(t *testing.T) {
+		t.Run(testCase.TargetFunction, func(t *testing.T) {
 			mut.Lock()
 			defer mut.Unlock()
 
@@ -248,12 +246,9 @@ func TestStart(t *testing.T) {
 			})
 			require.Nil(t, err)
 
-			serverfull.BuildMode = testCase.BuildMode
-			serverfull.MockMode = testCase.MockMode
-			serverfull.TargetFunction = testCase.TargetFunction
 			exit := make(chan error)
 			go func() {
-				exit <- serverfull.Start(ctx, source, fetcher)
+				exit <- testCase.StartFN(ctx, source, fetcher)
 			}()
 			require.NoError(t, testCase.Execute(t, port))
 			// The runtime establishes a signal handler for the entire
