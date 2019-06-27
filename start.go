@@ -22,7 +22,7 @@ func newRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp.Run
 		Fetcher: f,
 	}
 	router := NewRouter(conf)
-	rtC := &runhttp.Component{Handler: router}
+	rtC := runhttp.NewComponent().WithHandler(router)
 	rt := new(runhttp.Runtime)
 	err := settings.NewComponent(
 		ctx,
@@ -39,7 +39,7 @@ func newMockRuntime(ctx context.Context, s settings.Source, f Fetcher) (*runhttp
 		MockMode: true,
 	}
 	router := NewRouter(conf)
-	rtC := &runhttp.Component{Handler: router}
+	rtC := runhttp.NewComponent().WithHandler(router)
 	rt := new(runhttp.Runtime)
 	err := settings.NewComponent(
 		ctx,
