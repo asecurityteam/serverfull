@@ -194,13 +194,13 @@ compatible with AWS Lambda. To do this you would need to have something like:
 
 ```go
 if lambdaMode {
-    // Start the mock runtime.
+    // Start the lambda mode runtime.
     if err := serverfull.StartLambda(ctx, source, fetcher, "myFunctionName"); err != nil {
         panic(err.Error())
     }
     return
 }
-// Start the real runtime.
+// Start the serverfull mode runtime.
 if err := serverfull.StartHTTP(ctx, source, fetcher); err != nil {
     panic(err.Error())
 }
