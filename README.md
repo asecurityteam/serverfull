@@ -1,6 +1,6 @@
 <a id="markdown-serverfull---a-lambda-simulator-for-go" name="serverfull---a-lambda-simulator-for-go"></a>
 # Serverfull - A Lambda Simulator For Go
-
+[![GoDoc](https://godoc.org/github.com/asecurityteam/serverfull?status.svg)](https://godoc.org/github.com/asecurityteam/serverfull)
 <!-- TOC -->
 
 - [Serverfull - A Lambda Simulator For Go](#serverfull---a-lambda-simulator-for-go)
