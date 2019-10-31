@@ -26,7 +26,7 @@
 <a id="markdown-overview" name="overview"></a>
 ## Overview
 
-This projects is a toolkit for leveraging Lambda functions outside of the usual
+This project is a toolkit for leveraging Lambda functions outside of the usual
 serverless offering in AWS. Bundled with the project is an HTTP server that
 implements the [AWS Lambda Invoke
 API](https://docs.aws.amazon.com/lambda/latest/dg/API_Invoke.html) and is able to
