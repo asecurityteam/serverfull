@@ -3,7 +3,7 @@ module github.com/asecurityteam/serverfull
 go 1.12
 
 require (
-	github.com/asecurityteam/logevent v1.4.0
+	github.com/asecurityteam/logevent v1.5.0
 	github.com/asecurityteam/runhttp v0.4.0
 	github.com/asecurityteam/settings v0.4.0
 	github.com/aws/aws-lambda-go v1.22.0
