@@ -14,6 +14,8 @@ github.com/asecurityteam/logevent v0.0.0-20190225122144-b32737d8d51c h1:v630DsE4
 github.com/asecurityteam/logevent v0.0.0-20190225122144-b32737d8d51c/go.mod h1:B8p/D2QVPuRA9tiDTByVrXegCsrfy8bWEgnAka23EO0=
 github.com/asecurityteam/logevent v1.4.0 h1:sZ4X2JRzONcW3/jNapn0tjhc+t4K9gI1eHFzzuDi4nw=
 github.com/asecurityteam/logevent v1.4.0/go.mod h1:honZzywisDv/eTdOIWaNjJ1p0zgCG68zARUkr35CYDA=
+github.com/asecurityteam/logevent v1.5.0 h1:3zuGGhAY/x7XLK65lT0JEov/8vRYUwwTRrB6b0Gmml0=
+github.com/asecurityteam/logevent v1.5.0/go.mod h1:honZzywisDv/eTdOIWaNjJ1p0zgCG68zARUkr35CYDA=
 github.com/asecurityteam/runhttp v0.2.0 h1:guvLZ5cGR2g+XKUuyTGf7e2Myx/F3TbQITUHXsXP+9M=
 github.com/asecurityteam/runhttp v0.2.0/go.mod h1:13Zb/7m5FQVu1gHjt+YDse6aqfJ5LuC79u8xjM64jrI=
 github.com/asecurityteam/runhttp v0.4.0 h1:V0sjkLA7Onkmpnnu574yQL8k9g4JEtyDvWnmJ2fTZ4s=
