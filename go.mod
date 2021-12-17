@@ -8,7 +8,7 @@ require (
 	github.com/asecurityteam/settings v0.4.0
 	github.com/aws/aws-lambda-go v1.26.0
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/golang/mock v1.5.0
+	github.com/golang/mock v1.6.0
 	github.com/rs/xstats v0.0.0-20170813190920-c67367528e16
 	github.com/stretchr/testify v1.7.0
 )
@@ -27,6 +27,6 @@ require (
 	github.com/rs/xhandler v0.0.0-20170707052532-1eb70cf1520d // indirect
 	github.com/rs/zerolog v1.15.0 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
