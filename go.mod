@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/asecurityteam/logevent v1.5.0
-	github.com/asecurityteam/runhttp v0.4.0
+	github.com/asecurityteam/runhttp v0.4.2
 	github.com/asecurityteam/settings v0.4.0
 	github.com/aws/aws-lambda-go v1.26.0
 	github.com/go-chi/chi v4.1.2+incompatible
