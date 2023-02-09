@@ -16,15 +16,17 @@ require (
 require (
 	github.com/asecurityteam/component-connstate v0.1.0 // indirect
 	github.com/asecurityteam/component-expvar v0.1.0 // indirect
+	github.com/asecurityteam/component-log v0.2.1 // indirect
 	github.com/asecurityteam/component-signals v0.1.0 // indirect
 	github.com/asecurityteam/component-stat v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/gin-gonic/gin v1.5.0 // indirect
 	github.com/go-yaml/yaml v2.1.0+incompatible // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rs/xhandler v0.0.0-20170707052532-1eb70cf1520d // indirect
 	github.com/rs/zerolog v1.15.0 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )
