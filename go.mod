@@ -10,7 +10,7 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/rs/xstats v0.0.0-20170813190920-c67367528e16
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
