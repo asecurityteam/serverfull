@@ -3,7 +3,23 @@
   "extends": [
     "config:base"
   ],
-  "schedule": ["after 2pm on Tuesday"],
-  "timezone": "America/Chicago"
+  "postUpdateOptions": [
+    "gomodTidy",
+    "gomodUpdateImportPaths"
+  ],
+  "groupName": "all dependencies",
+  "groupSlug": "all",
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "groupName": "all dependencies",
+      "groupSlug": "all",
+      "matchPackagePatterns": [
+        "*"
+      ]
+    }
+  ],
+  "separateMajorMinor": false
 }
-
