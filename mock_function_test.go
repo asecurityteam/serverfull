@@ -6,8 +6,9 @@ package serverfull
 
 import (
 	context "context"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockFunction is a mock of Function interface

@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package tests
@@ -14,16 +15,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/asecurityteam/serverfull"
-	"github.com/asecurityteam/settings"
 	"github.com/aws/aws-lambda-go/lambda/messages"
 	"github.com/stretchr/testify/require"
+
+	"github.com/asecurityteam/serverfull"
+	"github.com/asecurityteam/settings"
 )
 
 // hello is lifted straight from the aws-lambda-go README.md file.
 // This is can be called like:
 //
-//		curl --request POST localhost:8080/2015-03-31/functions/hello/invocations
+//	curl --request POST localhost:8080/2015-03-31/functions/hello/invocations
 func hello() (string, error) {
 	return "Hello ƛ!", nil
 }

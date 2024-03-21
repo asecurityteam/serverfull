@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package tests
@@ -9,8 +10,9 @@ import (
 	"path"
 	"testing"
 
-	"github.com/asecurityteam/serverfull"
 	"github.com/stretchr/testify/require"
+
+	"github.com/asecurityteam/serverfull"
 )
 
 func TestURLRouting(t *testing.T) {

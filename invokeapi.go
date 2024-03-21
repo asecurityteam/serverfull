@@ -57,14 +57,14 @@ type lambdaError struct {
 // API as possible, there are several features that are not yet
 // supported:
 //
-// -	The "Tail" option for the LogType header does not cause the
-//		response to include partial logs.
+//   - The "Tail" option for the LogType header does not cause the
+//     response to include partial logs.
 //
-// -	The "Qualifier" parameter is currently ignored and the reported
-//		execution version is always "latest".
+//   - The "Qualifier" parameter is currently ignored and the reported
+//     execution version is always "latest".
 //
-// -	The "Function-Error" header is always "Unhandled" in the event
-//		of an exception.
+//   - The "Function-Error" header is always "Unhandled" in the event
+//     of an exception.
 //
 // This implementation also provides one extra feature which is that sending
 // an X-Amz-Invocation-Type header with the value "Error" and an X-Error-Type

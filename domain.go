@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/asecurityteam/logevent"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/rs/xstats"
+
+	"github.com/asecurityteam/logevent"
 )
 
 // Logger is an alias for the chosen project logging library
