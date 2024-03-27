@@ -4,13 +4,14 @@ go 1.17
 
 require (
 	github.com/asecurityteam/logevent v1.6.1
-	github.com/asecurityteam/runhttp v0.4.2
-	github.com/asecurityteam/settings v0.7.0
-	github.com/aws/aws-lambda-go v1.26.0
-	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/asecurityteam/runhttp v0.6.1
+	github.com/asecurityteam/settings v1.0.0
+	github.com/aws/aws-lambda-go v1.46.0
+	github.com/go-chi/chi v4.0.3+incompatible
+	github.com/go-chi/chi/v5 v5.0.12
 	github.com/golang/mock v1.6.0
 	github.com/rs/xstats v0.0.0-20170813190920-c67367528e16
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
