@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"github.com/asecurityteam/runhttp"
-	"github.com/asecurityteam/settings"
+	"github.com/asecurityteam/settings/v2"
 )
 
 // Start is maintained for backwards compatibility but is deprecated.

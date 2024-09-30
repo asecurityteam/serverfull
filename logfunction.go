@@ -3,7 +3,7 @@ package serverfull
 import (
 	"context"
 
-	"github.com/asecurityteam/logevent"
+	"github.com/asecurityteam/logevent/v2"
 )
 
 type loggingFunction struct {
