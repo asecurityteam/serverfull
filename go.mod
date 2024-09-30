@@ -8,7 +8,7 @@ require (
 	github.com/asecurityteam/logevent/v2 v2.0.1
 	github.com/asecurityteam/runhttp v0.6.5
 	github.com/asecurityteam/settings/v2 v2.0.1
-	github.com/aws/aws-lambda-go v1.47.0
+	github.com/aws/aws-lambda-go v1.26.0
 	github.com/go-chi/chi v1.5.5
 	github.com/golang/mock v1.6.0
 	github.com/rs/xstats v0.0.0-20170813190920-c67367528e16
