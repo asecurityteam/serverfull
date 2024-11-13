@@ -75,7 +75,7 @@ func StartHTTPMock(ctx context.Context, s settings.Source, f Fetcher) error {
 // true native lambda server. For example, this project leverages this
 // feature in our integration tests where we add some additional signal
 // handling for testing purposes.
-var LambdaStartFn = lambda.StartHandler
+var LambdaStartFn = lambda.StartHandler //nolint
 
 // StartLambda runs the target function from the fetcher as a
 // native lambda server.
