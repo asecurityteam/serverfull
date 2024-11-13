@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/asecurityteam/serverfull"
-	"github.com/asecurityteam/settings"
+	"github.com/asecurityteam/settings/v2"
 )
 
 // hello is lifted straight from the aws-lambda-go README.md file.

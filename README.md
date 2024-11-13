@@ -1,27 +1,7 @@
-<a id="markdown-serverfull---a-lambda-simulator-for-go" name="serverfull---a-lambda-simulator-for-go"></a>
 # Serverfull - A Lambda Simulator For Go
 [![GoDoc](https://godoc.org/github.com/asecurityteam/serverfull?status.svg)](https://godoc.org/github.com/asecurityteam/serverfull)
-<!-- TOC -->
+<!-- TOC -->autoauto- [Serverfull - A Lambda Simulator For Go](#serverfull---a-lambda-simulator-for-go)auto    - [Overview](#overview)auto    - [Quick Start](#quick-start)auto    - [Features And Limitations](#features-and-limitations)auto        - [HTTP API Options](#http-api-options)auto        - [Function Loaders](#function-loaders)auto        - [Running In Mock Mode](#running-in-mock-mode)auto        - [Building Lambda Binaries](#building-lambda-binaries)auto    - [Configuration](#configuration)auto    - [Status](#status)auto    - [Planned/Proposed Features](#plannedproposed-features)auto    - [Contributing](#contributing)auto        - [Building And Testing](#building-and-testing)auto        - [License](#license)auto        - [Contributing Agreement](#contributing-agreement)autoauto<!-- /TOC -->
 
-- [Serverfull - A Lambda Simulator For Go](#serverfull---a-lambda-simulator-for-go)
-    - [Overview](#overview)
-    - [Quick Start](#quick-start)
-    - [Features And Limitations](#features-and-limitations)
-        - [HTTP API Options](#http-api-options)
-        - [Function Loaders](#function-loaders)
-        - [Running In Mock Mode](#running-in-mock-mode)
-        - [Building Lambda Binaries](#building-lambda-binaries)
-    - [Configuration](#configuration)
-    - [Status](#status)
-    - [Planned/Proposed Features](#plannedproposed-features)
-    - [Contributing](#contributing)
-        - [Building And Testing](#building-and-testing)
-        - [License](#license)
-        - [Contributing Agreement](#contributing-agreement)
-
-<!-- /TOC -->
-
-<a id="markdown-overview" name="overview"></a>
 ## Overview
 
 This projects is a toolkit for leveraging Lambda functions outside of the usual
@@ -49,7 +29,6 @@ would likely be better served by using tools like
 [docker-lambda](https://github.com/lambci/docker-lambda) and [AWS SAM
 Local](https://aws.amazon.com/blogs/aws/new-aws-sam-local-beta-build-and-test-serverless-applications-locally/).
 
-<a id="markdown-quick-start" name="quick-start"></a>
 ## Quick Start
 
 Start by defining a normal lambda function. For example, here is one from the AWS Go
@@ -77,7 +56,7 @@ import (
     "fmt"
 
     "github.com/asecurityteam/serverfull"
-    "github.com/asecurityteam/settings"
+    "github.com/asecurityteam/settings/v2"
 )
 
 func hello() (string, error) {
@@ -131,10 +110,8 @@ aws lambda invoke \
     rm output.txt
 ```
 
-<a id="markdown-features-and-limitations" name="features-and-limitations"></a>
 ## Features And Limitations
 
-<a id="markdown-http-api-options" name="http-api-options"></a>
 ### HTTP API Options
 
 The `X-Amz-Invocation-Type` header can be used, as described in the actual [AWS
@@ -153,7 +130,6 @@ are:
 The API is compatible enough with AWS Lambda that the AWS CLI, as well as all AWS
 SDKs that support Lambda features, can be used after adjusting the endpoint value.
 
-<a id="markdown-function-loaders" name="function-loaders"></a>
 ### Function Loaders
 
 The project currently only supports using a static mapping of functions. A future
@@ -162,7 +138,6 @@ feature we are considering is the addition of the `CreateFunction` and
 This would enable teams who want to continue using the AWS CLI for managing
 deployments to do so.
 
-<a id="markdown-running-in-mock-mode" name="running-in-mock-mode"></a>
 ### Running In Mock Mode
 
 Mock mode inspects the signatures of each function being served and runs a
@@ -183,7 +158,6 @@ if err := serverfull.StartHTTP(ctx, source, fetcher); err != nil {
 }
 ```
 
-<a id="markdown-building-lambda-binaries" name="building-lambda-binaries"></a>
 ### Building Lambda Binaries
 
 In the same manner that you can enable mock mode you can also enable a native
@@ -218,7 +192,6 @@ startup time.
 The lambda build mode also supports running the function in mock mode by
 using `StartLambdaMock`.
 
-<a id="markdown-configuration" name="configuration"></a>
 ## Configuration
 
 This project uses [settings](https://github.com/asecurityteam/settings) for managing
@@ -236,13 +209,11 @@ you use a project like [transportd](https://github.com/asecurityteam/transportd)
 more in-depth "service-mesh" type of proxy rather than modifying this project
 directly.
 
-<a id="markdown-status" name="status"></a>
 ## Status
 
 This project is in incubation which means we are not yet operating this tool in
 production and the interfaces are subject to change.
 
-<a id="markdown-plannedproposed-features" name="plannedproposed-features"></a>
 ## Planned/Proposed Features
 
 -   Replication of AWS CloudWatch metrics for lambda when running in HTTP mode.
@@ -252,10 +223,8 @@ production and the interfaces are subject to change.
 -   Ability to provide static or random values for mock outputs instead of only zero
     values.
 
-<a id="markdown-contributing" name="contributing"></a>
 ## Contributing
 
-<a id="markdown-building-and-testing" name="building-and-testing"></a>
 ### Building And Testing
 
 We publish a docker image called [SDCLI](https://github.com/asecurityteam/sdcli) that
@@ -283,12 +252,10 @@ the Makefile:
 
     Report the combined coverage for unit and integration tests
 
-<a id="markdown-license" name="license"></a>
 ### License
 
 This project is licensed under Apache 2.0. See LICENSE.txt for details.
 
-<a id="markdown-contributing-agreement" name="contributing-agreement"></a>
 ### Contributing Agreement
 
 Atlassian requires signing a contributor's agreement before we can accept a patch. If
