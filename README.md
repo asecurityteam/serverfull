@@ -1,5 +1,18 @@
 # Serverfull - A Lambda Simulator For Go
 [![GoDoc](https://godoc.org/github.com/asecurityteam/serverfull?status.svg)](https://godoc.org/github.com/asecurityteam/serverfull)
+
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=bugs)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=code_smells)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=coverage)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=ncloc)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=alert_status)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=security_rating)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=sqale_index)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=asecurityteam_serverfull&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=asecurityteam_serverfull)
+
 <!-- TOC -->autoauto- [Serverfull - A Lambda Simulator For Go](#serverfull---a-lambda-simulator-for-go)auto    - [Overview](#overview)auto    - [Quick Start](#quick-start)auto    - [Features And Limitations](#features-and-limitations)auto        - [HTTP API Options](#http-api-options)auto        - [Function Loaders](#function-loaders)auto        - [Running In Mock Mode](#running-in-mock-mode)auto        - [Building Lambda Binaries](#building-lambda-binaries)auto    - [Configuration](#configuration)auto    - [Status](#status)auto    - [Planned/Proposed Features](#plannedproposed-features)auto    - [Contributing](#contributing)auto        - [Building And Testing](#building-and-testing)auto        - [License](#license)auto        - [Contributing Agreement](#contributing-agreement)autoauto<!-- /TOC -->
 
 ## Overview
