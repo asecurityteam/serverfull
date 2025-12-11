@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package tests
 
@@ -7,7 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/rpc"
 	"os"
@@ -77,7 +76,7 @@ func TestStart(t *testing.T) {
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusOK {
-				b, _ := ioutil.ReadAll(resp.Body)
+				b, _ := io.ReadAll(resp.Body)
 				t.Log(resp.StatusCode)
 				t.Log(string(b))
 				continue
@@ -112,7 +111,7 @@ func TestStart(t *testing.T) {
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusInternalServerError {
-				b, _ := ioutil.ReadAll(resp.Body)
+				b, _ := io.ReadAll(resp.Body)
 				t.Log(resp.StatusCode)
 				t.Log(string(b))
 				continue

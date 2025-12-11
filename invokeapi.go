@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -103,7 +103,7 @@ func (h *Invoke) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fnType = invocationTypeRequestResponse // This is the default value in AWS.
 	}
 	ctx := r.Context()
-	b, errRead := ioutil.ReadAll(r.Body)
+	b, errRead := io.ReadAll(r.Body)
 	if errRead != nil {
 		w.WriteHeader(http.StatusBadRequest) // Matches JSON parsing errors for the body
 		_ = json.NewEncoder(w).Encode(responseFromError(errRead))
