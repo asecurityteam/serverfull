@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package tests
 
@@ -156,7 +155,7 @@ func convertStack(s []uintptr) []*messages.InvokeResponse_Error_StackFrame {
 
 func formatFrame(inputFrame runtime.Frame) *messages.InvokeResponse_Error_StackFrame {
 	path := inputFrame.File
-	line := int32(inputFrame.Line)
+	line := int32(inputFrame.Line) // nolint:gosec // G115: Line number is always non-negative
 	label := inputFrame.Function
 
 	// Strip GOPATH from path by counting the number of seperators in label & path
