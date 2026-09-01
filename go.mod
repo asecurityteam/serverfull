@@ -1,8 +1,6 @@
 module github.com/asecurityteam/serverfull
 
-go 1.22
-
-toolchain go1.24.4
+go 1.27.1
 
 require (
 	github.com/asecurityteam/logevent/v2 v2.0.3
